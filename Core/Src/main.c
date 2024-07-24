@@ -40,15 +40,36 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+FDCAN_HandleTypeDef hfdcan3;
+
 I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim5;
+TIM_HandleTypeDef htim6;
 
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+
+FDCAN_TxHeaderTypeDef TxHeader;
+FDCAN_RxHeaderTypeDef RxHeader;
+FDCAN_FilterTypeDef sFilterConfig;
+
+uint8_t TxData[8] = {};
+uint32_t TxMailbox;
+
+typedef struct{
+	uint8_t ID;
+	int16_t count;
+} Encoder;
+
+Encoder encoder[3] = {
+		{0, 0},
+		{1, 0},
+		{2, 0}
+};
 
 /* USER CODE END PV */
 
@@ -60,26 +81,55 @@ static void MX_TIM3_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_FDCAN3_Init(void);
+static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+/*	if (&htim6 == htim){
+		TxData[0] = encoder[0].count >> 8;
+		TxData[1] = (uint8_t)(encoder[0].count & 0xff);
+		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan3, &TxHeader, TxData) != HAL_OK){
+			Error_Handler();
+		}
+	}*/
+}
+
 int16_t read_encoder_value(void)
 {
-  int16_t count_t = 0;
-  uint16_t enc_buff = TIM5->CNT;
+  int32_t count_t = 0;
+  uint32_t enc_buff = TIM5->CNT;
   TIM5->CNT = 0;
-  if (enc_buff > 32767)
+  if (enc_buff > 0x8fffffff)
   {
-    count_t = (int16_t)enc_buff*-1;
+    count_t = (int32_t)enc_buff*-1;
   }
   else
   {
-    count_t = (int16_t)enc_buff;
+    count_t = (int32_t)enc_buff;
   }
   return count_t;
+}
+
+
+void FDCAN_TxSettings(void) {
+	  TxHeader.Identifier = 0x300;
+	  TxHeader.IdType = FDCAN_STANDARD_ID;
+	  TxHeader.TxFrameType = FDCAN_DATA_FRAME;
+	  TxHeader.DataLength = FDCAN_DLC_BYTES_8;
+	  TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+	  TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
+	  TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
+	  TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+	  TxHeader.MessageMarker = 0;
+	  if (HAL_FDCAN_Start(&hfdcan3) != HAL_OK) {
+		  printf("fdcan_start is error\r\n");
+		  Error_Handler();
+	  }
 }
 
 int _write(int file, char *ptr, int len)
@@ -124,19 +174,30 @@ int main(void)
   MX_TIM5_Init();
   MX_I2C1_Init();
   MX_USART2_UART_Init();
+  MX_FDCAN3_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-  uint16_t count = 0;
 
+  printf("encoder start\r\n");
   HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
+  printf("can rx start\r\n");
+  FDCAN_TxSettings();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  HAL_TIM_Base_Start_IT(&htim6);
   while (1)
   {
-	  count += read_encoder_value();
-	  printf("encoder:%d\n\r", count);
-	  HAL_Delay(10);
+	  encoder[0].count = read_encoder_value();
+	  printf("encoder:%d\n\r", encoder[0].count);
+	  TxData[0] = encoder[0].count >> 8;
+	  TxData[1] = (uint8_t)(encoder[0].count & 0xff);
+	  if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan3, &TxHeader, TxData) != HAL_OK){
+		  Error_Handler();
+	  }
+
+	  HAL_Delay(1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -163,7 +224,13 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+  RCC_OscInitStruct.PLL.PLLN = 10;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -173,15 +240,58 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief FDCAN3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_FDCAN3_Init(void)
+{
+
+  /* USER CODE BEGIN FDCAN3_Init 0 */
+
+  /* USER CODE END FDCAN3_Init 0 */
+
+  /* USER CODE BEGIN FDCAN3_Init 1 */
+
+  /* USER CODE END FDCAN3_Init 1 */
+  hfdcan3.Instance = FDCAN3;
+  hfdcan3.Init.ClockDivider = FDCAN_CLOCK_DIV1;
+  hfdcan3.Init.FrameFormat = FDCAN_FRAME_FD_BRS;
+  hfdcan3.Init.Mode = FDCAN_MODE_NORMAL;
+  hfdcan3.Init.AutoRetransmission = DISABLE;
+  hfdcan3.Init.TransmitPause = DISABLE;
+  hfdcan3.Init.ProtocolException = DISABLE;
+  hfdcan3.Init.NominalPrescaler = 4;
+  hfdcan3.Init.NominalSyncJumpWidth = 1;
+  hfdcan3.Init.NominalTimeSeg1 = 15;
+  hfdcan3.Init.NominalTimeSeg2 = 4;
+  hfdcan3.Init.DataPrescaler = 2;
+  hfdcan3.Init.DataSyncJumpWidth = 1;
+  hfdcan3.Init.DataTimeSeg1 = 15;
+  hfdcan3.Init.DataTimeSeg2 = 4;
+  hfdcan3.Init.StdFiltersNbr = 1;
+  hfdcan3.Init.ExtFiltersNbr = 0;
+  hfdcan3.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
+  if (HAL_FDCAN_Init(&hfdcan3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN FDCAN3_Init 2 */
+
+  /* USER CODE END FDCAN3_Init 2 */
+
 }
 
 /**
@@ -200,7 +310,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x00303D5B;
+  hi2c1.Init.Timing = 0x10909CEC;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -391,6 +501,44 @@ static void MX_TIM5_Init(void)
 }
 
 /**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 9;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 7999;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM6_Init 2 */
+
+  /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -493,6 +641,7 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
+  printf("Error\r\n");
   while (1)
   {
   }
