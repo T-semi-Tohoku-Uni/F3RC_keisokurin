@@ -40,7 +40,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-FDCAN_HandleTypeDef hfdcan3;
+FDCAN_HandleTypeDef hfdcan1;
 
 I2C_HandleTypeDef hi2c1;
 
@@ -81,8 +81,8 @@ static void MX_TIM3_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART2_UART_Init(void);
-static void MX_FDCAN3_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_FDCAN1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -93,7 +93,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 /*	if (&htim6 == htim){
 		TxData[0] = encoder[0].count >> 8;
 		TxData[1] = (uint8_t)(encoder[0].count & 0xff);
-		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan3, &TxHeader, TxData) != HAL_OK){
+		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK){
 			Error_Handler();
 		}
 	}*/
@@ -122,11 +122,11 @@ void FDCAN_TxSettings(void) {
 	  TxHeader.TxFrameType = FDCAN_DATA_FRAME;
 	  TxHeader.DataLength = FDCAN_DLC_BYTES_8;
 	  TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-	  TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
-	  TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
+	  TxHeader.BitRateSwitch = FDCAN_BRS_ON;
+	  TxHeader.FDFormat = FDCAN_FD_CAN;
 	  TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
 	  TxHeader.MessageMarker = 0;
-	  if (HAL_FDCAN_Start(&hfdcan3) != HAL_OK) {
+	  if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK) {
 		  printf("fdcan_start is error\r\n");
 		  Error_Handler();
 	  }
@@ -174,13 +174,13 @@ int main(void)
   MX_TIM5_Init();
   MX_I2C1_Init();
   MX_USART2_UART_Init();
-  MX_FDCAN3_Init();
   MX_TIM6_Init();
+  MX_FDCAN1_Init();
   /* USER CODE BEGIN 2 */
 
   printf("encoder start\r\n");
   HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
-  printf("can rx start\r\n");
+  printf("can tx start\r\n");
   FDCAN_TxSettings();
   /* USER CODE END 2 */
 
@@ -193,11 +193,11 @@ int main(void)
 	  printf("encoder:%d\n\r", encoder[0].count);
 	  TxData[0] = encoder[0].count >> 8;
 	  TxData[1] = (uint8_t)(encoder[0].count & 0xff);
-	  if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan3, &TxHeader, TxData) != HAL_OK){
+	  if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK){
 		  Error_Handler();
 	  }
 
-	  HAL_Delay(1);
+	  HAL_Delay(10);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -252,45 +252,45 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief FDCAN3 Initialization Function
+  * @brief FDCAN1 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_FDCAN3_Init(void)
+static void MX_FDCAN1_Init(void)
 {
 
-  /* USER CODE BEGIN FDCAN3_Init 0 */
+  /* USER CODE BEGIN FDCAN1_Init 0 */
 
-  /* USER CODE END FDCAN3_Init 0 */
+  /* USER CODE END FDCAN1_Init 0 */
 
-  /* USER CODE BEGIN FDCAN3_Init 1 */
+  /* USER CODE BEGIN FDCAN1_Init 1 */
 
-  /* USER CODE END FDCAN3_Init 1 */
-  hfdcan3.Instance = FDCAN3;
-  hfdcan3.Init.ClockDivider = FDCAN_CLOCK_DIV1;
-  hfdcan3.Init.FrameFormat = FDCAN_FRAME_FD_BRS;
-  hfdcan3.Init.Mode = FDCAN_MODE_NORMAL;
-  hfdcan3.Init.AutoRetransmission = DISABLE;
-  hfdcan3.Init.TransmitPause = DISABLE;
-  hfdcan3.Init.ProtocolException = DISABLE;
-  hfdcan3.Init.NominalPrescaler = 4;
-  hfdcan3.Init.NominalSyncJumpWidth = 1;
-  hfdcan3.Init.NominalTimeSeg1 = 15;
-  hfdcan3.Init.NominalTimeSeg2 = 4;
-  hfdcan3.Init.DataPrescaler = 2;
-  hfdcan3.Init.DataSyncJumpWidth = 1;
-  hfdcan3.Init.DataTimeSeg1 = 15;
-  hfdcan3.Init.DataTimeSeg2 = 4;
-  hfdcan3.Init.StdFiltersNbr = 1;
-  hfdcan3.Init.ExtFiltersNbr = 0;
-  hfdcan3.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
-  if (HAL_FDCAN_Init(&hfdcan3) != HAL_OK)
+  /* USER CODE END FDCAN1_Init 1 */
+  hfdcan1.Instance = FDCAN1;
+  hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
+  hfdcan1.Init.FrameFormat = FDCAN_FRAME_FD_BRS;
+  hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
+  hfdcan1.Init.AutoRetransmission = DISABLE;
+  hfdcan1.Init.TransmitPause = DISABLE;
+  hfdcan1.Init.ProtocolException = DISABLE;
+  hfdcan1.Init.NominalPrescaler = 4;
+  hfdcan1.Init.NominalSyncJumpWidth = 1;
+  hfdcan1.Init.NominalTimeSeg1 = 15;
+  hfdcan1.Init.NominalTimeSeg2 = 2*2;
+  hfdcan1.Init.DataPrescaler = 2;
+  hfdcan1.Init.DataSyncJumpWidth = 1;
+  hfdcan1.Init.DataTimeSeg1 = 15;
+  hfdcan1.Init.DataTimeSeg2 = 4;
+  hfdcan1.Init.StdFiltersNbr = 1;
+  hfdcan1.Init.ExtFiltersNbr = 0;
+  hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
+  if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN FDCAN3_Init 2 */
+  /* USER CODE BEGIN FDCAN1_Init 2 */
 
-  /* USER CODE END FDCAN3_Init 2 */
+  /* USER CODE END FDCAN1_Init 2 */
 
 }
 
