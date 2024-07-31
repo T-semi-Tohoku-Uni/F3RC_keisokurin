@@ -197,7 +197,7 @@ int main(void)
 		  Error_Handler();
 	  }
 
-	  HAL_Delay(10);
+	  HAL_Delay(1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
