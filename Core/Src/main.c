@@ -40,7 +40,7 @@ typedef struct{
 #define PI 3.1415
 
 
-#define r 0.06//mm
+#define r 60//mm
 /*
 #define R1//mm
 #define R2//mm
@@ -311,7 +311,7 @@ int main(void)
   while (1)
   {
 
-
+	  printf("(%d, %d, %d)\r\n", x, y, theta);
 	  HAL_Delay(1);
     /* USER CODE END WHILE */
 
