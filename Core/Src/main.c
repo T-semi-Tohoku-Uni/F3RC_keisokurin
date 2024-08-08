@@ -22,15 +22,29 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+typedef struct{
+	uint8_t ID;
+	volatile int16_t count;//pulse
+	const float l_angle;//locate
+	volatile float vel;//rad/s
+} Encoder;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define PI 3.1415
+
+
+#define r 0.06//mm
+/*
+#define R1//mm
+#define R2//mm
+*/
 
 /* USER CODE END PD */
 
@@ -60,16 +74,16 @@ FDCAN_FilterTypeDef sFilterConfig;
 uint8_t TxData[8] = {};
 uint32_t TxMailbox;
 
-typedef struct{
-	uint8_t ID;
-	int16_t count;
-} Encoder;
+const int16_t ppr = 1000;
 
 Encoder encoder[3] = {
-		{0, 0},
-		{1, 0},
-		{2, 0}
+		{0, 0, 0},
+		{1, 0, 0},
+		{2, 0, 0}
 };
+
+volatile float x = 0, y = 0;
+volatile float theta = 0;
 
 /* USER CODE END PV */
 
@@ -90,16 +104,67 @@ static void MX_FDCAN1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-/*	if (&htim6 == htim){
-		TxData[0] = encoder[0].count >> 8;
-		TxData[1] = (uint8_t)(encoder[0].count & 0xff);
+	if (htim == htim6){
+		float vx = 0, vy = 0;//mm/ms
+		float omega = 0;//rad/ms
+		encoder[0].count = read_encoder_value_1();
+		encoder[1].count = read_encoder_value_2();
+		encoder[2].count = read_encoder_value_3();
+
+		for (int i = 0; i < 3;i++) {
+			encoder[i].vel = 2*PI*(encode[i].count/ppr);
+		}
+
+		vel_calc(theta, encoder[0].vel, encoder[1].vel, encoder[2].vel, &vx, &vy, &omega);
+
+		x += vx;
+		y += vy;
+		theta += omega;
+
+		RxData[0] = (int16_t)(x) >> 8;
+		RxData[1] = (uint8_t)((int16_t)(x) & 0xff);
+		RxData[2] = (int16_t)(y) >> 8;
+		RxData[3] = (uint8_t)((int16_t)(y) & 0xff);
 		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK){
+			printf("add_message is error\r\n");
 			Error_Handler();
 		}
-	}*/
+	}
 }
 
-int16_t read_encoder_value(void)
+int16_t read_encoder_value_1(void)
+{
+  int32_t count_t = 0;
+  uint32_t enc_buff = TIM2->CNT;
+  TIM2->CNT = 0;
+  if (enc_buff > 0x8fffffff)
+  {
+    count_t = (int32_t)enc_buff*-1;
+  }
+  else
+  {
+    count_t = (int32_t)enc_buff;
+  }
+  return (int16_t)count_t;
+}
+
+int16_t read_encoder_value_2(void)
+{
+  int32_t count_t = 0;
+  uint32_t enc_buff = TIM3->CNT;
+  TIM3->CNT = 0;
+  if (enc_buff > 0x8fffffff)
+  {
+    count_t = (int32_t)enc_buff*-1;
+  }
+  else
+  {
+    count_t = (int32_t)enc_buff;
+  }
+  return (int16_t)count_t;
+}
+
+int16_t read_encoder_value_3(void)
 {
   int32_t count_t = 0;
   uint32_t enc_buff = TIM5->CNT;
@@ -112,25 +177,81 @@ int16_t read_encoder_value(void)
   {
     count_t = (int32_t)enc_buff;
   }
-  return count_t;
+  return (int16_t)count_t;
 }
 
+void vel_calc(float theta, float w1, float w2, float w3, float *vx, float *vy, float *omega){
 
-void FDCAN_TxSettings(void) {
-	  TxHeader.Identifier = 0x300;
-	  TxHeader.IdType = FDCAN_STANDARD_ID;
-	  TxHeader.TxFrameType = FDCAN_DATA_FRAME;
-	  TxHeader.DataLength = FDCAN_DLC_BYTES_8;
-	  TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-	  TxHeader.BitRateSwitch = FDCAN_BRS_ON;
-	  TxHeader.FDFormat = FDCAN_FD_CAN;
-	  TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	  TxHeader.MessageMarker = 0;
-	  if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK) {
-		  printf("fdcan_start is error\r\n");
-		  Error_Handler();
-	  }
+	float w[3] = {w1, w2, w3};
+
+	float sint = sin(theta);
+	float cost = cos(theta);
+
+	float a[3][3] = {
+			{-sint, cost, R1},
+			{sint, -cost, R1},
+			{cost, sint, R2}
+	};
+
+	float det = a[0][0]*a[1][1]*a[2][2];
+	det += a[1][0]*a[2][1]*a[0][2];
+	det += a[2][0]*a[0][1]*a[1][2];
+	det -= a[2][0]*a[1][1]*a[0][2];
+	det -= a[1][0]*a[0][1]*a[2][2];
+	det -= a[0][0]*a[2][1]*a[1][2];
+
+	float a_in[3][3] = {
+			{( a[1][1]*a[2][2]-a[1][2]*a[2][1])/det, (-a[0][1]*a[2][2]+a[0][2]*a[2][1])/det, ( a[0][1]*a[1][2]-a[0][2]*a[1][1])/det},
+			{(-a[1][0]*a[2][2]+a[1][2]*a[2][0])/det, ( a[0][0]*a[2][2]-a[0][2]*a[2][0])/det, (-a[0][0]*a[1][2]+a[0][2]*a[1][0])/det},
+			{( a[1][0]*a[2][1]-a[1][1]*a[2][0])/det, (-a[0][0]*a[2][1]+a[0][1]*a[2][0])/det, ( a[0][0]*a[1][1]-a[0][1]*a[1][0])/det}
+	};
+
+	*vx =    r*(a_in[0][0]*w[0]+a_in[0][1]*w[1]+a_in[0][2]*w[2]);
+	*vy =    r*(a_in[1][0]*w[0]+a_in[1][1]*w[1]+a_in[1][2]*w[2]);
+	*omega = r*(a_in[2][0]*w[0]+a_in[2][1]*w[1]+a_in[2][2]*w[2]);
 }
+
+void FDCAN_RxTxSettings(void){
+	FDCAN_FilterTypeDef FDCAN_Filter_settings;
+	FDCAN_Filter_settings.IdType = FDCAN_STANDARD_ID;
+	FDCAN_Filter_settings.FilterIndex = 0;
+	FDCAN_Filter_settings.FilterType = FDCAN_FILTER_RANGE;
+	FDCAN_Filter_settings.FilterConfig = FDCAN_FILTER_TO_RXFIFO1;
+	FDCAN_Filter_settings.FilterID1 = 0x200;
+	FDCAN_Filter_settings.FilterID2 = 0x310;
+
+	TxHeader.Identifier = 0x400;
+	TxHeader.IdType = FDCAN_STANDARD_ID;
+	TxHeader.TxFrameType = FDCAN_DATA_FRAME;
+	TxHeader.DataLength = FDCAN_DLC_BYTES_8;
+	TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+	TxHeader.BitRateSwitch = FDCAN_BRS_ON;
+	TxHeader.FDFormat = FDCAN_FD_CAN;
+	TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+	TxHeader.MessageMarker = 0;
+
+
+	if (HAL_FDCAN_ConfigFilter(&hfdcan1, &FDCAN_Filter_settings) != HAL_OK){
+		printf("fdcan_configfilter is error\r\n");
+		Error_Handler();
+	}
+
+	if (HAL_FDCAN_ConfigGlobalFilter(&hfdcan1, FDCAN_REJECT, FDCAN_FILTER_REJECT, FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE) != HAL_OK){
+		printf("fdcan_configglobalfilter is error\r\n");
+		Error_Handler();
+	}
+
+	if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK) {
+		printf("fdcan_start is error\r\n");
+		Error_Handler();
+	}
+
+	if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0) != HAL_OK){
+		printf("fdcan_activatenotification is error\r\n");
+		Error_Handler();
+	}
+}
+
 
 int _write(int file, char *ptr, int len)
 {
@@ -181,7 +302,7 @@ int main(void)
   printf("encoder start\r\n");
   HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
   printf("can tx start\r\n");
-  FDCAN_TxSettings();
+  FDCAN_RxTxSettings();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -189,13 +310,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim6);
   while (1)
   {
-	  encoder[0].count = read_encoder_value();
-	  printf("encoder:%d\n\r", encoder[0].count);
-	  TxData[0] = encoder[0].count >> 8;
-	  TxData[1] = (uint8_t)(encoder[0].count & 0xff);
-	  if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK){
-		  Error_Handler();
-	  }
+
 
 	  HAL_Delay(1);
     /* USER CODE END WHILE */
