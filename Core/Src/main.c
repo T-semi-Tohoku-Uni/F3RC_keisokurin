@@ -121,10 +121,31 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		y += vy;
 		theta += omega;
 
+		theta = fmodf(theta, 2*PI);
+
+		uint16_t theta_syi;
+		uint8_t theta_se;
+		if (theta > 0){
+			theta_se = (int16_t)theta;
+			float theta_syf = theta - (int16_t)theta;
+			theta_syi = (uint16_t)(theta_syf*10000);
+		}
+		else{
+			theta_se = (int16_t)theta;
+			float theta_k = -theta;
+			float theta_syf = theta_k - (int16_t)theta_k;
+			theta_syi = (uint16_t)(theta_syf*10000);
+
+		}
+
+
 		RxData[0] = (int16_t)(x) >> 8;
 		RxData[1] = (uint8_t)((int16_t)(x) & 0xff);
 		RxData[2] = (int16_t)(y) >> 8;
 		RxData[3] = (uint8_t)((int16_t)(y) & 0xff);
+		RxData[4] = (int16_t)(theta_syi) >> 8;
+		RxData[5] = (uint8_t)((int16_t)(theta_syi) & 0xff);
+		RxData[6] = theta_se;
 		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK){
 			printf("add_message is error\r\n");
 			Error_Handler();
@@ -180,7 +201,7 @@ int16_t read_encoder_value_3(void)
   return (int16_t)count_t;
 }
 
-void vel_calc(float theta, float w1, float w2, float w3, float *vx, float *vy, float *omega){
+void vel_calc(float theta, float w1, float w2, float w3, float *Vx, float *Vy, float *Omega){
 
 	float w[3] = {w1, w2, w3};
 
@@ -206,9 +227,9 @@ void vel_calc(float theta, float w1, float w2, float w3, float *vx, float *vy, f
 			{( a[1][0]*a[2][1]-a[1][1]*a[2][0])/det, (-a[0][0]*a[2][1]+a[0][1]*a[2][0])/det, ( a[0][0]*a[1][1]-a[0][1]*a[1][0])/det}
 	};
 
-	*vx =    r*(a_in[0][0]*w[0]+a_in[0][1]*w[1]+a_in[0][2]*w[2]);
-	*vy =    r*(a_in[1][0]*w[0]+a_in[1][1]*w[1]+a_in[1][2]*w[2]);
-	*omega = r*(a_in[2][0]*w[0]+a_in[2][1]*w[1]+a_in[2][2]*w[2]);
+	*Vx =    r*(a_in[0][0]*w[0]+a_in[0][1]*w[1]+a_in[0][2]*w[2]);
+	*Vy =    r*(a_in[1][0]*w[0]+a_in[1][1]*w[1]+a_in[1][2]*w[2]);
+	*Omega = r*(a_in[2][0]*w[0]+a_in[2][1]*w[1]+a_in[2][2]*w[2]);
 }
 
 void FDCAN_RxTxSettings(void){
