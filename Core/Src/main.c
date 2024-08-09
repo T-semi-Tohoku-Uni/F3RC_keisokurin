@@ -139,13 +139,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		}
 
 
-		RxData[0] = (int16_t)(x) >> 8;
-		RxData[1] = (uint8_t)((int16_t)(x) & 0xff);
-		RxData[2] = (int16_t)(y) >> 8;
-		RxData[3] = (uint8_t)((int16_t)(y) & 0xff);
-		RxData[4] = (int16_t)(theta_syi) >> 8;
-		RxData[5] = (uint8_t)((int16_t)(theta_syi) & 0xff);
-		RxData[6] = theta_se;
+		TxData[0] = (int16_t)(x) >> 8;
+		TxData[1] = (uint8_t)((int16_t)(x) & 0xff);
+		TxData[2] = (int16_t)(y) >> 8;
+		TxData[3] = (uint8_t)((int16_t)(y) & 0xff);
+		TxData[4] = (int16_t)(theta_syi) >> 8;
+		TxData[5] = (uint8_t)((int16_t)(theta_syi) & 0xff);
+		TxData[6] = theta_se;
+		TxHeader.Identifier = 0x400;
 		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK){
 			printf("add_message is error\r\n");
 			Error_Handler();
