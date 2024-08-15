@@ -41,10 +41,10 @@ typedef struct{
 
 
 #define r 60//mm
-/*
-#define R1//mm
-#define R2//mm
-*/
+
+#define R1 187//mm
+#define R2 73//mm
+
 
 /* USER CODE END PD */
 
