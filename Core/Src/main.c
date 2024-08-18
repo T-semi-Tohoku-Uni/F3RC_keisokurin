@@ -326,6 +326,9 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
   printf("can tx start\r\n");
   FDCAN_RxTxSettings();
+  HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -335,7 +338,7 @@ int main(void)
   {
 	  int16_t count = read_encoder_value_1();
 	  printf("%d\r\n", count);
-	  //printf("(%d, %d, %d)\r\n", (int)x, (int)y, (int)theta);
+	  //printf("(%d, %d, %d)\r\n", (int16_t)x, (int16_t)y, (int16_t)theta);
 	  HAL_Delay(1);
     /* USER CODE END WHILE */
 
