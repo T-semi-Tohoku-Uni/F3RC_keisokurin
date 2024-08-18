@@ -187,8 +187,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		float vx = 0, vy = 0;//mm/ms
 		float omega = 0;//rad/ms
 		encoder[0].count = read_encoder_value_1();
-		encoder[1].count = read_encoder_value_2();
-		encoder[2].count = read_encoder_value_3();
+		encoder[0].count = read_encoder_value_2();
+		encoder[0].count = read_encoder_value_3();
 
 		for (int i = 0; i < 3;i++) {
 			encoder[i].vel = 2*PI*(encoder[i].count/ppr);
@@ -196,9 +196,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 		vel_calc(theta, encoder[0].vel, encoder[1].vel, encoder[2].vel, &vx, &vy, &omega);
 
-		x += vx;
-		y += vy;
-		theta += omega;
+		x += vx * 10;
+		y += vy * 10;
+		theta += omega * 10;
 
 		theta = fmodf(theta, 2*PI);
 
@@ -330,11 +330,12 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  HAL_TIM_Base_Start_IT(&htim6);
+  //HAL_TIM_Base_Start_IT(&htim6);
   while (1)
   {
-
-	  printf("(%d, %d, %d)\r\n", (int)x, (int)y, (int)theta);
+	  int16_t count = read_encoder_value_1();
+	  printf("%d\r\n", count);
+	  //printf("(%d, %d, %d)\r\n", (int)x, (int)y, (int)theta);
 	  HAL_Delay(1);
     /* USER CODE END WHILE */
 
