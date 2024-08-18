@@ -103,57 +103,6 @@ static void MX_FDCAN1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	if (htim == htim6){
-		float vx = 0, vy = 0;//mm/ms
-		float omega = 0;//rad/ms
-		encoder[0].count = read_encoder_value_1();
-		encoder[1].count = read_encoder_value_2();
-		encoder[2].count = read_encoder_value_3();
-
-		for (int i = 0; i < 3;i++) {
-			encoder[i].vel = 2*PI*(encode[i].count/ppr);
-		}
-
-		vel_calc(theta, encoder[0].vel, encoder[1].vel, encoder[2].vel, &vx, &vy, &omega);
-
-		x += vx;
-		y += vy;
-		theta += omega;
-
-		theta = fmodf(theta, 2*PI);
-
-		uint16_t theta_syi;
-		uint8_t theta_se;
-		if (theta > 0){
-			theta_se = (int16_t)theta;
-			float theta_syf = theta - (int16_t)theta;
-			theta_syi = (uint16_t)(theta_syf*10000);
-		}
-		else{
-			theta_se = (int16_t)theta;
-			float theta_k = -theta;
-			float theta_syf = theta_k - (int16_t)theta_k;
-			theta_syi = (uint16_t)(theta_syf*10000);
-
-		}
-
-
-		TxData[0] = (int16_t)(x) >> 8;
-		TxData[1] = (uint8_t)((int16_t)(x) & 0xff);
-		TxData[2] = (int16_t)(y) >> 8;
-		TxData[3] = (uint8_t)((int16_t)(y) & 0xff);
-		TxData[4] = (int16_t)(theta_syi) >> 8;
-		TxData[5] = (uint8_t)((int16_t)(theta_syi) & 0xff);
-		TxData[6] = theta_se;
-		TxHeader.Identifier = 0x400;
-		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK){
-			printf("add_message is error\r\n");
-			Error_Handler();
-		}
-	}
-}
-
 int16_t read_encoder_value_1(void)
 {
   int32_t count_t = 0;
@@ -232,6 +181,58 @@ void vel_calc(float theta, float w1, float w2, float w3, float *Vx, float *Vy, f
 	*Vy =    r*(a_in[1][0]*w[0]+a_in[1][1]*w[1]+a_in[1][2]*w[2]);
 	*Omega = r*(a_in[2][0]*w[0]+a_in[2][1]*w[1]+a_in[2][2]*w[2]);
 }
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if(htim == &htim6){
+		float vx = 0, vy = 0;//mm/ms
+		float omega = 0;//rad/ms
+		encoder[0].count = read_encoder_value_1();
+		encoder[1].count = read_encoder_value_2();
+		encoder[2].count = read_encoder_value_3();
+
+		for (int i = 0; i < 3;i++) {
+			encoder[i].vel = 2*PI*(encoder[i].count/ppr);
+		}
+
+		vel_calc(theta, encoder[0].vel, encoder[1].vel, encoder[2].vel, &vx, &vy, &omega);
+
+		x += vx;
+		y += vy;
+		theta += omega;
+
+		theta = fmodf(theta, 2*PI);
+
+		uint16_t theta_syi;
+		uint8_t theta_se;
+		if (theta > 0){
+			theta_se = (int16_t)theta;
+			float theta_syf = theta - (int16_t)theta;
+			theta_syi = (uint16_t)(theta_syf*10000);
+		}
+		else{
+			theta_se = (int16_t)theta;
+			float theta_k = -theta;
+			float theta_syf = theta_k - (int16_t)theta_k;
+			theta_syi = (uint16_t)(theta_syf*10000);
+
+		}
+
+
+		TxData[0] = (int16_t)(x) >> 8;
+		TxData[1] = (uint8_t)((int16_t)(x) & 0xff);
+		TxData[2] = (int16_t)(y) >> 8;
+		TxData[3] = (uint8_t)((int16_t)(y) & 0xff);
+		TxData[4] = (int16_t)(theta_syi) >> 8;
+		TxData[5] = (uint8_t)((int16_t)(theta_syi) & 0xff);
+		TxData[6] = theta_se;
+		TxHeader.Identifier = 0x400;
+		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK){
+			printf("add_message is error\r\n");
+			Error_Handler();
+		}
+	}
+}
+
 
 void FDCAN_RxTxSettings(void){
 	FDCAN_FilterTypeDef FDCAN_Filter_settings;
@@ -333,7 +334,7 @@ int main(void)
   while (1)
   {
 
-	  printf("(%d, %d, %d)\r\n", x, y, theta);
+	  printf("(%d, %d, %d)\r\n", (int)x, (int)y, (int)theta);
 	  HAL_Delay(1);
     /* USER CODE END WHILE */
 
