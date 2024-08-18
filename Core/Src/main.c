@@ -337,8 +337,10 @@ int main(void)
   {
 	  //int16_t count = read_encoder_value_1();
 	  //printf("%d\r\n", count);
-	  printf("%d\r\n", encoder[0].count);
-	  //printf("(%d, %d, %d)\r\n", (int16_t)x, (int16_t)y, (int16_t)theta);
+	  //printf("%d.%d.%d\r\n", encoder[0].count, encoder[1].count, encoder[2].count);
+	  //printf("%d", encoder[2].count);
+	  //printf("\r\n");
+	  printf("(%d, %d, %d)\r\n", (int16_t)x, (int16_t)y, (int16_t)theta);
 	  HAL_Delay(1);
     /* USER CODE END WHILE */
 
