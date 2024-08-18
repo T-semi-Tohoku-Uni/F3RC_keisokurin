@@ -187,8 +187,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		float vx = 0, vy = 0;//mm/ms
 		float omega = 0;//rad/ms
 		encoder[0].count = read_encoder_value_1();
-		encoder[0].count = read_encoder_value_2();
-		encoder[0].count = read_encoder_value_3();
+		encoder[1].count = read_encoder_value_2();
+		encoder[2].count = read_encoder_value_3();
 
 		for (int i = 0; i < 3;i++) {
 			encoder[i].vel = 2*PI*(encoder[i].count/ppr);
@@ -322,8 +322,7 @@ int main(void)
   MX_FDCAN1_Init();
   /* USER CODE BEGIN 2 */
 
-  printf("encoder start\r\n");
-  HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
+  printf("start\r\n");
   printf("can tx start\r\n");
   FDCAN_RxTxSettings();
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
@@ -333,11 +332,12 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  //HAL_TIM_Base_Start_IT(&htim6);
+  HAL_TIM_Base_Start_IT(&htim6);
   while (1)
   {
-	  int16_t count = read_encoder_value_1();
-	  printf("%d\r\n", count);
+	  //int16_t count = read_encoder_value_1();
+	  //printf("%d\r\n", count);
+	  printf("%d\r\n", encoder[0].count);
 	  //printf("(%d, %d, %d)\r\n", (int16_t)x, (int16_t)y, (int16_t)theta);
 	  HAL_Delay(1);
     /* USER CODE END WHILE */
