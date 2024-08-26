@@ -151,12 +151,12 @@ int16_t read_encoder_value_3(void)
   return (int16_t)count_t;
 }
 
-void vel_calc(float theta, float w1, float w2, float w3, float *Vx, float *Vy, float *Omega){
+void vel_calc(float Theta, float w1, float w2, float w3, float *Vx, float *Vy, float *Omega){
 
 	float w[3] = {w1, w2, w3};
 
-	float sint = sin(theta);
-	float cost = cos(theta);
+	float sint = sin(Theta);
+	float cost = cos(Theta);
 
 	float a[3][3] = {
 			{-sint, cost, R1},
@@ -196,9 +196,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 		vel_calc(theta, encoder[0].vel, encoder[1].vel, encoder[2].vel, &vx, &vy, &omega);
 
-		x += vx * 10;
-		y += vy * 10;
-		theta += omega * 10;
+		x += vx * 100;
+		y += vy * 100;
+		theta += omega * 100;
 
 		theta = fmodf(theta, 2*PI);
 
