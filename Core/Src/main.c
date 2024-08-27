@@ -74,7 +74,7 @@ FDCAN_FilterTypeDef sFilterConfig;
 uint8_t TxData[8] = {};
 uint32_t TxMailbox;
 
-const float ppr = 1000;
+const float ppr = 9000;
 
 Encoder encoder[3] = {
 		{0, 0, 0},
@@ -335,6 +335,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   HAL_TIM_Base_Start_IT(&htim6);
+  //int en = 0;
   while (1)
   {
 	  //int16_t count = read_encoder_value_1();
@@ -342,7 +343,8 @@ int main(void)
 	  //printf("%d.%d.%d\r\n", encoder[0].count, encoder[1].count, encoder[2].count);
 	  //printf("%d", encoder[2].count);
 	  //printf("\r\n");
-
+	  //en += encoder[0].count;
+	  //printf("%d\r\n", en);
 	  printf("(%f, %f, %f)\r\n", x, y, theta);
 	  HAL_Delay(10);
     /* USER CODE END WHILE */
@@ -503,7 +505,6 @@ static void MX_TIM2_Init(void)
 
   TIM_Encoder_InitTypeDef sConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIMEx_EncoderIndexConfigTypeDef sEncoderIndexConfig = {0};
 
   /* USER CODE BEGIN TIM2_Init 1 */
 
@@ -530,16 +531,6 @@ static void MX_TIM2_Init(void)
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sEncoderIndexConfig.Polarity = TIM_ENCODERINDEX_POLARITY_NONINVERTED;
-  sEncoderIndexConfig.Prescaler = TIM_ENCODERINDEX_PRESCALER_DIV1;
-  sEncoderIndexConfig.Filter = 0;
-  sEncoderIndexConfig.FirstIndexEnable = DISABLE;
-  sEncoderIndexConfig.Position = TIM_ENCODERINDEX_POSITION_00;
-  sEncoderIndexConfig.Direction = TIM_ENCODERINDEX_DIRECTION_UP_DOWN;
-  if (HAL_TIMEx_ConfigEncoderIndex(&htim2, &sEncoderIndexConfig) != HAL_OK)
   {
     Error_Handler();
   }
