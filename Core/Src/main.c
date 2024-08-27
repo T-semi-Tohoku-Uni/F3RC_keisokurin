@@ -31,7 +31,7 @@ typedef struct{
 	uint8_t ID;
 	volatile int16_t count;//pulse
 	const float l_angle;//locate
-	volatile float vel;//rad/s
+	volatile float vel;//rad/ms
 } Encoder;
 /* USER CODE END PTD */
 
@@ -82,8 +82,8 @@ Encoder encoder[3] = {
 		{2, 0, 0}
 };
 
-volatile float x = 0, y = 0;
-volatile float theta = 0;
+volatile float x = 0, y = 0;//mm
+volatile float theta = 0;//rad
 
 /* USER CODE END PV */
 
@@ -184,21 +184,23 @@ void vel_calc(float Theta, float w1, float w2, float w3, float *Vx, float *Vy, f
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim == &htim6){
+		float dt = 100;
 		float vx = 0, vy = 0;//mm/ms
 		float omega = 0;//rad/ms
 		encoder[0].count = read_encoder_value_1();
 		encoder[1].count = read_encoder_value_2();
 		encoder[2].count = read_encoder_value_3();
 
+
 		for (int i = 0; i < 3;i++) {
-			encoder[i].vel = 2*PI*(encoder[i].count/ppr);
+			encoder[i].vel = 2*PI*(encoder[i].count/ppr)/dt;
 		}
 
 		vel_calc(theta, encoder[0].vel, encoder[1].vel, encoder[2].vel, &vx, &vy, &omega);
 
-		x += vx * 100;
-		y += vy * 100;
-		theta += omega * 100;
+		x += vx * dt;
+		y += vy * dt;
+		theta += omega * dt	;
 
 		theta = fmodf(theta, 2*PI);
 
@@ -227,7 +229,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		TxData[6] = theta_se;
 		TxHeader.Identifier = 0x400;
 		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK){
-			printf("add_message is error\r\n");
+			printf("add_message_zahyo is error\r\n");
 			Error_Handler();
 		}
 	}
@@ -340,8 +342,9 @@ int main(void)
 	  //printf("%d.%d.%d\r\n", encoder[0].count, encoder[1].count, encoder[2].count);
 	  //printf("%d", encoder[2].count);
 	  //printf("\r\n");
-	  printf("(%d, %d, %d)\r\n", (int16_t)x, (int16_t)y, (int)(theta*100));
-	  HAL_Delay(1);
+
+	  printf("(%f, %f, %f)\r\n", x, y, theta);
+	  HAL_Delay(10);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
