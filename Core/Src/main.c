@@ -74,7 +74,7 @@ FDCAN_FilterTypeDef sFilterConfig;
 uint8_t TxData[8] = {};
 uint32_t TxMailbox;
 
-const int16_t ppr = 1000;
+const float ppr = 1000;
 
 Encoder encoder[3] = {
 		{0, 0, 0},
