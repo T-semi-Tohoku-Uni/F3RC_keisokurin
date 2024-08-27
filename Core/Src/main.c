@@ -340,7 +340,7 @@ int main(void)
 	  //printf("%d.%d.%d\r\n", encoder[0].count, encoder[1].count, encoder[2].count);
 	  //printf("%d", encoder[2].count);
 	  //printf("\r\n");
-	  printf("(%d, %d, %d)\r\n", (int16_t)x, (int16_t)y, (int16_t)theta);
+	  printf("(%d, %d, %d)\r\n", (int16_t)x, (int16_t)y, (int)(theta*100));
 	  HAL_Delay(1);
     /* USER CODE END WHILE */
 
@@ -662,7 +662,7 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 9;
+  htim6.Init.Prescaler = 999;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim6.Init.Period = 7999;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
