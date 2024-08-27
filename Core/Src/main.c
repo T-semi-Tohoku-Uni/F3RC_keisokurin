@@ -71,6 +71,7 @@ FDCAN_TxHeaderTypeDef TxHeader;
 FDCAN_RxHeaderTypeDef RxHeader;
 FDCAN_FilterTypeDef sFilterConfig;
 
+uint8_t RxData[8] = {};
 uint8_t TxData[8] = {};
 uint32_t TxMailbox;
 
@@ -85,6 +86,7 @@ Encoder encoder[3] = {
 volatile float x = 0, y = 0;//mm
 volatile float theta = 0;//rad
 
+uint8_t state = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -103,6 +105,22 @@ static void MX_FDCAN1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs){
+	if ((RxFifo1ITs & FDCAN_IT_RX_FIFO1_NEW_MESSAGE) != RESET) {
+
+	        /* Retrieve Rx messages from RX FIFO0 */
+
+		if (HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO1, &RxHeader, RxData) != HAL_OK) {
+			printf("fdcan_getrxmessage is error\r\n");
+			Error_Handler();
+		}
+
+		if (RxHeader.Identifier == 0x100) {
+			state = RxData[0];
+		}
+	}
+}
+
 int16_t read_encoder_value_1(void)
 {
   int32_t count_t = 0;
@@ -242,8 +260,8 @@ void FDCAN_RxTxSettings(void){
 	FDCAN_Filter_settings.FilterIndex = 0;
 	FDCAN_Filter_settings.FilterType = FDCAN_FILTER_RANGE;
 	FDCAN_Filter_settings.FilterConfig = FDCAN_FILTER_TO_RXFIFO1;
-	FDCAN_Filter_settings.FilterID1 = 0x200;
-	FDCAN_Filter_settings.FilterID2 = 0x310;
+	FDCAN_Filter_settings.FilterID1 = 0x000;
+	FDCAN_Filter_settings.FilterID2 = 0x510;
 
 	TxHeader.Identifier = 0x400;
 	TxHeader.IdType = FDCAN_STANDARD_ID;
