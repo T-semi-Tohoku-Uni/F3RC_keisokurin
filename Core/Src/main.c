@@ -76,7 +76,7 @@ uint8_t RxData[8] = {};
 uint8_t TxData[8] = {};
 uint32_t TxMailbox;
 
-const float ppr = 9000;
+const float ppr[3] = {1000, 1000, 1100};
 
 Encoder encoder[3] = {
 		{0, 0, 0},
@@ -86,7 +86,7 @@ Encoder encoder[3] = {
 
 volatile float x = 0, y = 0;//mm
 volatile float theta = 0;//rad
-volatile uint8_t swstate = 0;//右、左、前、�?
+volatile uint8_t swstate = 0;//右、左、前????��?��??��?��???��?��??��?��?????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��?
 
 uint8_t state = 0;
 /* USER CODE END PV */
@@ -198,14 +198,14 @@ void vel_calc(float Theta, float w1, float w2, float w3, float *Vx, float *Vy, f
 			{( a[1][0]*a[2][1]-a[1][1]*a[2][0])/det, (-a[0][0]*a[2][1]+a[0][1]*a[2][0])/det, ( a[0][0]*a[1][1]-a[0][1]*a[1][0])/det}
 	};
 
-	*Vx =    r*(a_in[0][0]*w[0]+a_in[0][1]*w[1]+a_in[0][2]*w[2]);
-	*Vy =    r*(a_in[1][0]*w[0]+a_in[1][1]*w[1]+a_in[1][2]*w[2]);
-	*Omega = r*(a_in[2][0]*w[0]+a_in[2][1]*w[1]+a_in[2][2]*w[2]);
+	*Vx =    r*(a_in[0][0]*w[0]+a_in[0][1]*w[1]+a_in[0][2]*w[2])/2;
+	*Vy =    r*(a_in[1][0]*w[0]+a_in[1][1]*w[1]+a_in[1][2]*w[2])/2;
+	*Omega = r*(a_in[2][0]*w[0]+a_in[2][1]*w[1]+a_in[2][2]*w[2])/2;
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim == &htim6){
-		float dt = 100;
+		float dt = 10;
 		float vx = 0, vy = 0;//mm/ms
 		float omega = 0;//rad/ms
 		encoder[0].count = read_encoder_value_1();
@@ -213,8 +213,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		encoder[2].count = read_encoder_value_3();
 
 
-		for (int i = 0; i < 3;i++) {
-			encoder[i].vel = 2*PI*(encoder[i].count/ppr)/dt;
+		for (int i = 0; i < 3; i++) {
+			encoder[i].vel = 2*PI*(encoder[i].count/ppr[i])/dt;
 		}
 
 		vel_calc(theta, encoder[0].vel, encoder[1].vel, encoder[2].vel, &vx, &vy, &omega);
@@ -400,6 +400,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   HAL_TIM_Base_Start_IT(&htim6);
+  //HAL_TIM_Base_Start_IT(&htim4);
   //int en = 0;
   while (1)
   {
@@ -408,10 +409,10 @@ int main(void)
 	  //printf("%d.%d.%d\r\n", encoder[0].count, encoder[1].count, encoder[2].count);
 	  //printf("%d", encoder[2].count);
 	  //printf("\r\n");
-	  //en += encoder[0].count;
+	  //en += read_encoder_value_1();
 	  //printf("%d\r\n", en);
 	  printf("(%f, %f, %f)\r\n", x, y, theta);
-	  printf("swstate:%d",swstate);
+	  //printf("swstate:%d",swstate);
 	  HAL_Delay(10);
     /* USER CODE END WHILE */
 
@@ -674,9 +675,9 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 7999;
+  htim4.Init.Prescaler = 9;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 499;
+  htim4.Init.Period = 4999;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
@@ -767,7 +768,7 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 999;
+  htim6.Init.Prescaler = 99;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim6.Init.Period = 7999;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -863,13 +864,13 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : lmt_sw5_Pin lmt_sw6_Pin lmt_sw7_Pin lmt_sw8_Pin */
   GPIO_InitStruct.Pin = lmt_sw5_Pin|lmt_sw6_Pin|lmt_sw7_Pin|lmt_sw8_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : lmt_sw1_Pin lmt_sw2_Pin lmt_sw3_Pin lmt_sw4_Pin */
   GPIO_InitStruct.Pin = lmt_sw1_Pin|lmt_sw2_Pin|lmt_sw3_Pin|lmt_sw4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
