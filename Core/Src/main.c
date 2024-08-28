@@ -60,6 +60,7 @@ I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim6;
 
@@ -85,6 +86,7 @@ Encoder encoder[3] = {
 
 volatile float x = 0, y = 0;//mm
 volatile float theta = 0;//rad
+volatile uint8_t swstate = 0;//右、左、前�?��?
 
 uint8_t state = 0;
 /* USER CODE END PV */
@@ -99,6 +101,7 @@ static void MX_I2C1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_FDCAN1_Init(void);
+static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -251,6 +254,53 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			Error_Handler();
 		}
 	}
+
+	if(htim == &htim4){
+		if(HAL_GPIO_ReadPin(lmt_sw1_GPIO_Port,lmt_sw1_Pin) == GPIO_PIN_RESET){
+			printf("sw1 on");
+			swstate = swstate|0x01;
+		}else {
+			swstate = swstate&0xfe;
+		}
+		if(HAL_GPIO_ReadPin(lmt_sw2_GPIO_Port,lmt_sw2_Pin) == GPIO_PIN_RESET){
+			printf("sw2 on");
+			swstate = swstate|0x02;
+		}else {
+			swstate = swstate&0xfd;
+		}
+		if(HAL_GPIO_ReadPin(lmt_sw3_GPIO_Port,lmt_sw3_Pin) == GPIO_PIN_RESET){
+			printf("sw3 on");
+			swstate = swstate|0x04;
+		}else {
+			swstate = swstate&0xfb;
+		}
+		if(HAL_GPIO_ReadPin(lmt_sw4_GPIO_Port,lmt_sw4_Pin) == GPIO_PIN_RESET){
+			printf("sw4 on");
+			swstate = swstate|0x08;
+		}else {
+			swstate = swstate&0xf7;
+		}
+		if(HAL_GPIO_ReadPin(lmt_sw5_GPIO_Port,lmt_sw5_Pin) == GPIO_PIN_RESET){
+			swstate = swstate|0x10;
+		}else {
+			swstate = swstate&0xef;
+		}
+		if(HAL_GPIO_ReadPin(lmt_sw6_GPIO_Port,lmt_sw6_Pin) == GPIO_PIN_RESET){
+			swstate = swstate|0x20;
+		}else {
+			swstate = swstate&0xdf;
+		}
+		if(HAL_GPIO_ReadPin(lmt_sw7_GPIO_Port,lmt_sw7_Pin) == GPIO_PIN_RESET){
+			swstate = swstate|0x40;
+		}else {
+			swstate = swstate&0xbf;
+		}
+		if(HAL_GPIO_ReadPin(lmt_sw8_GPIO_Port,lmt_sw8_Pin) == GPIO_PIN_RESET){
+			swstate = swstate|0x80;
+		}else {
+			swstate = swstate&0x7f;
+		}
+	}
 }
 
 
@@ -340,6 +390,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM6_Init();
   MX_FDCAN1_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
   printf("start\r\n");
@@ -353,6 +404,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   HAL_TIM_Base_Start_IT(&htim6);
+  HAL_TIM_Base_Start_IT(&htim4);
   //int en = 0;
   while (1)
   {
@@ -363,7 +415,8 @@ int main(void)
 	  //printf("\r\n");
 	  //en += encoder[0].count;
 	  //printf("%d\r\n", en);
-	  printf("(%f, %f, %f)\r\n", x, y, theta);
+	  //printf("(%f, %f, %f)\r\n", x, y, theta);
+	  printf("swstate:%d\r\n",swstate);
 	  HAL_Delay(10);
     /* USER CODE END WHILE */
 
@@ -608,6 +661,51 @@ static void MX_TIM3_Init(void)
 }
 
 /**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 7999;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 499;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
+
+}
+
+/**
   * @brief TIM5 Initialization Function
   * @param None
   * @retval None
@@ -768,15 +866,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(eno_rst_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : lmt_sw5_Pin lmt_sw6_Pin lmt_sw7_Pin lmt_sw8_Pin */
-  GPIO_InitStruct.Pin = lmt_sw5_Pin|lmt_sw6_Pin|lmt_sw7_Pin|lmt_sw8_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  /*Configure GPIO pins : lmt_sw7_Pin lmt_sw6_Pin lmt_sw5_Pin lmt_sw1_Pin */
+  GPIO_InitStruct.Pin = lmt_sw7_Pin|lmt_sw6_Pin|lmt_sw5_Pin|lmt_sw1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : lmt_sw1_Pin lmt_sw2_Pin lmt_sw3_Pin lmt_sw4_Pin */
-  GPIO_InitStruct.Pin = lmt_sw1_Pin|lmt_sw2_Pin|lmt_sw3_Pin|lmt_sw4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  /*Configure GPIO pins : lmt_sw8_Pin lmt_sw3_Pin lmt_sw2_Pin lmt_sw4_Pin */
+  GPIO_InitStruct.Pin = lmt_sw8_Pin|lmt_sw3_Pin|lmt_sw2_Pin|lmt_sw4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
