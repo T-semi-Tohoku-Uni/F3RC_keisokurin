@@ -86,13 +86,10 @@ Encoder encoder[3] = {
 
 volatile float x = 0, y = 0;//mm
 volatile float theta = 0;//rad
-<<<<<<< Updated upstream
-volatile uint8_t swstate = 0;//右、左、前�?��?
-=======
 volatile uint8_t swstate = 0;//右、左、前?????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��??????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��?????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��?
->>>>>>> Stashed changes
 
 uint8_t state = 0;
+uint8_t sub_state = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -124,6 +121,7 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 
 		if (RxHeader.Identifier == 0x100) {
 			state = RxData[0];
+			sub_state = RxData[1];
 		}
 	}
 }
@@ -242,7 +240,77 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 //			theta_syi = (uint16_t)(theta_syf*10000);
 //
 //		}
+		if (4 == state){
+			if (0 == sub_state){
+				if (NULL) {//switch
+					y = 0;//edge y
+					RxData[6] = 1;
+				}
+				else {
+					RxData[6] = 0;
+				}
+			}
+			else if (1 == sub_state) {
+				if (NULL) {
+					x = 0;//edge x
+					RxData[6] = 1;
+				}
+				else {
+					RxData[6] = 0;
+				}
+			}
+			else if (2 == sub_state) {
+				if (NULL) {
+					y = 0;//edge y
+					RxData[6] = 1;
+				}
+				else {
+					RxData[6] = 0;
+				}
+			}
+			else if (3 == sub_state) {
+				if (NULL) {
+					x = 0;//edge x
+					RxData[6] = 1;
+				}
+				else {
+					RxData[6] = 0;
+				}
+			}
+			else if (4 == sub_state) {
+				if (NULL) {
+					y = 0;//edge y
+					RxData[6] = 1;
+				}
+				else {
+					RxData[6] = 0;
+				}
+			}
+			else if (5 == sub_state) {
+				if (NULL) {
+					x = 0;//edge x
+					RxData[6] = 1;
+				}
+				else {
+					RxData[6] = 0;
+				}
+			}
+			else if (6 == sub_state) {
+				if (NULL) {
+					y = 0;//edge y
+					RxData[6] = 1;
+				}
+				else {
+					RxData[6] = 0;
+				}
+			}
+			else {
 
+			}
+		}
+		else {
+			RxData[6] = 0;
+		}
 
 		theta *= 400;
 		TxData[0] = (int16_t)(x) >> 8;
@@ -262,41 +330,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 	if(htim == &htim4){
 		if(HAL_GPIO_ReadPin(lmt_sw1_GPIO_Port,lmt_sw1_Pin) == GPIO_PIN_RESET){
-<<<<<<< Updated upstream
-			printf("sw1 on");
-=======
 			//printf("sw1 on");
->>>>>>> Stashed changes
 			swstate = swstate|0x01;
 		}else {
 			swstate = swstate&0xfe;
 		}
 		if(HAL_GPIO_ReadPin(lmt_sw2_GPIO_Port,lmt_sw2_Pin) == GPIO_PIN_RESET){
-<<<<<<< Updated upstream
-			printf("sw2 on");
-=======
 			//printf("sw2 on");
->>>>>>> Stashed changes
 			swstate = swstate|0x02;
 		}else {
 			swstate = swstate&0xfd;
 		}
 		if(HAL_GPIO_ReadPin(lmt_sw3_GPIO_Port,lmt_sw3_Pin) == GPIO_PIN_RESET){
-<<<<<<< Updated upstream
-			printf("sw3 on");
-=======
 			//printf("sw3 on");
->>>>>>> Stashed changes
 			swstate = swstate|0x04;
 		}else {
 			swstate = swstate&0xfb;
 		}
 		if(HAL_GPIO_ReadPin(lmt_sw4_GPIO_Port,lmt_sw4_Pin) == GPIO_PIN_RESET){
-<<<<<<< Updated upstream
-			printf("sw4 on");
-=======
 			//printf("sw4 on");
->>>>>>> Stashed changes
 			swstate = swstate|0x08;
 		}else {
 			swstate = swstate&0xf7;
@@ -891,24 +943,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-<<<<<<< Updated upstream
-  HAL_GPIO_Init(eno_rst_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : lmt_sw7_Pin lmt_sw6_Pin lmt_sw5_Pin lmt_sw1_Pin */
-  GPIO_InitStruct.Pin = lmt_sw7_Pin|lmt_sw6_Pin|lmt_sw5_Pin|lmt_sw1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-=======
->>>>>>> Stashed changes
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : lmt_sw8_Pin lmt_sw3_Pin lmt_sw2_Pin lmt_sw4_Pin */
   GPIO_InitStruct.Pin = lmt_sw8_Pin|lmt_sw3_Pin|lmt_sw2_Pin|lmt_sw4_Pin;
-<<<<<<< Updated upstream
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-=======
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
->>>>>>> Stashed changes
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
