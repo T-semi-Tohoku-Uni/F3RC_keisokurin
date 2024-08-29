@@ -86,7 +86,7 @@ Encoder encoder[3] = {
 
 volatile float x = 0, y = 0;//mm
 volatile float theta = 0;//rad
-volatile uint8_t swstate = 0;//右、左、前?????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��??????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��?????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��?
+volatile uint8_t swstate = 0;//前、右、後ろ、左
 
 uint8_t state = 0;
 uint8_t sub_state = 0;
@@ -242,7 +242,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 //		}
 		if (4 == state){
 			if (0 == sub_state){
-				if (NULL) {//switch
+				if ((swstate & 0x03) == 0x03) {//switch
 					y = 0;//edge y
 					RxData[6] = 1;
 				}
@@ -251,7 +251,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				}
 			}
 			else if (1 == sub_state) {
-				if (NULL) {
+				if ((swstate & 0x0c) == 0x0c) {
 					x = 0;//edge x
 					RxData[6] = 1;
 				}
@@ -260,7 +260,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				}
 			}
 			else if (2 == sub_state) {
-				if (NULL) {
+				if ((swstate & 0x30) == 0x30) {
 					y = 0;//edge y
 					RxData[6] = 1;
 				}
@@ -269,7 +269,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				}
 			}
 			else if (3 == sub_state) {
-				if (NULL) {
+				if ((swstate & 0x0c) == 0x0c) {
 					x = 0;//edge x
 					RxData[6] = 1;
 				}
@@ -278,7 +278,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				}
 			}
 			else if (4 == sub_state) {
-				if (NULL) {
+				if ((swstate & 0xc0) == 0xc0) {
 					y = 0;//edge y
 					RxData[6] = 1;
 				}
@@ -287,7 +287,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				}
 			}
 			else if (5 == sub_state) {
-				if (NULL) {
+				if ((swstate & 0x03) == 0x03) {
 					x = 0;//edge x
 					RxData[6] = 1;
 				}
@@ -296,7 +296,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				}
 			}
 			else if (6 == sub_state) {
-				if (NULL) {
+				if ((swstate & 0xc0) == 0xc0) {
 					y = 0;//edge y
 					RxData[6] = 1;
 				}
