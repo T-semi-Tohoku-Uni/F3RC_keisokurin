@@ -86,7 +86,11 @@ Encoder encoder[3] = {
 
 volatile float x = 0, y = 0;//mm
 volatile float theta = 0;//rad
+<<<<<<< Updated upstream
 volatile uint8_t swstate = 0;//右、左、前�?��?
+=======
+volatile uint8_t swstate = 0;//右、左、前?????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��??????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��?????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��?
+>>>>>>> Stashed changes
 
 uint8_t state = 0;
 /* USER CODE END PV */
@@ -224,30 +228,31 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		theta += omega * dt	;
 
 		theta = fmodf(theta, 2*PI);
+//		uint16_t theta_syi;
+//		uint8_t theta_se;
+//		if (theta > 0){
+//			theta_se = (int16_t)theta;
+//			float theta_syf = theta - (int16_t)theta;
+//			theta_syi = (uint16_t)(theta_syf*10000);
+//		}
+//		else{
+//			theta_se = (int16_t)theta;
+//			float theta_k = -theta;
+//			float theta_syf = theta_k - (int16_t)theta_k;
+//			theta_syi = (uint16_t)(theta_syf*10000);
+//
+//		}
 
-		uint16_t theta_syi;
-		uint8_t theta_se;
-		if (theta > 0){
-			theta_se = (int16_t)theta;
-			float theta_syf = theta - (int16_t)theta;
-			theta_syi = (uint16_t)(theta_syf*10000);
-		}
-		else{
-			theta_se = (int16_t)theta;
-			float theta_k = -theta;
-			float theta_syf = theta_k - (int16_t)theta_k;
-			theta_syi = (uint16_t)(theta_syf*10000);
 
-		}
-
-
+		theta *= 400;
 		TxData[0] = (int16_t)(x) >> 8;
 		TxData[1] = (uint8_t)((int16_t)(x) & 0xff);
 		TxData[2] = (int16_t)(y) >> 8;
 		TxData[3] = (uint8_t)((int16_t)(y) & 0xff);
-		TxData[4] = (int16_t)(theta_syi) >> 8;
-		TxData[5] = (uint8_t)((int16_t)(theta_syi) & 0xff);
-		TxData[6] = theta_se;
+		TxData[4] = (int16_t)(theta) >> 8;
+		TxData[5] = (uint8_t)((int16_t)(theta) & 0xff);
+		theta /= 400;
+		//TxData[6] = theta_se;
 		TxHeader.Identifier = 0x400;
 		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK){
 			printf("add_message_zahyo is error\r\n");
@@ -257,25 +262,41 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 	if(htim == &htim4){
 		if(HAL_GPIO_ReadPin(lmt_sw1_GPIO_Port,lmt_sw1_Pin) == GPIO_PIN_RESET){
+<<<<<<< Updated upstream
 			printf("sw1 on");
+=======
+			//printf("sw1 on");
+>>>>>>> Stashed changes
 			swstate = swstate|0x01;
 		}else {
 			swstate = swstate&0xfe;
 		}
 		if(HAL_GPIO_ReadPin(lmt_sw2_GPIO_Port,lmt_sw2_Pin) == GPIO_PIN_RESET){
+<<<<<<< Updated upstream
 			printf("sw2 on");
+=======
+			//printf("sw2 on");
+>>>>>>> Stashed changes
 			swstate = swstate|0x02;
 		}else {
 			swstate = swstate&0xfd;
 		}
 		if(HAL_GPIO_ReadPin(lmt_sw3_GPIO_Port,lmt_sw3_Pin) == GPIO_PIN_RESET){
+<<<<<<< Updated upstream
 			printf("sw3 on");
+=======
+			//printf("sw3 on");
+>>>>>>> Stashed changes
 			swstate = swstate|0x04;
 		}else {
 			swstate = swstate&0xfb;
 		}
 		if(HAL_GPIO_ReadPin(lmt_sw4_GPIO_Port,lmt_sw4_Pin) == GPIO_PIN_RESET){
+<<<<<<< Updated upstream
 			printf("sw4 on");
+=======
+			//printf("sw4 on");
+>>>>>>> Stashed changes
 			swstate = swstate|0x08;
 		}else {
 			swstate = swstate&0xf7;
@@ -857,25 +878,39 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(eno_rst_GPIO_Port, eno_rst_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, eno_rst_Pin|lmt_sw7_Pin|lmt_sw6_Pin|lmt_sw5_Pin
+                          |lmt_sw1_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : eno_rst_Pin */
-  GPIO_InitStruct.Pin = eno_rst_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, lmt_sw8_Pin|lmt_sw3_Pin|lmt_sw2_Pin|lmt_sw4_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : eno_rst_Pin lmt_sw7_Pin lmt_sw6_Pin lmt_sw5_Pin
+                           lmt_sw1_Pin */
+  GPIO_InitStruct.Pin = eno_rst_Pin|lmt_sw7_Pin|lmt_sw6_Pin|lmt_sw5_Pin
+                          |lmt_sw1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+<<<<<<< Updated upstream
   HAL_GPIO_Init(eno_rst_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : lmt_sw7_Pin lmt_sw6_Pin lmt_sw5_Pin lmt_sw1_Pin */
   GPIO_InitStruct.Pin = lmt_sw7_Pin|lmt_sw6_Pin|lmt_sw5_Pin|lmt_sw1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
+=======
+>>>>>>> Stashed changes
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : lmt_sw8_Pin lmt_sw3_Pin lmt_sw2_Pin lmt_sw4_Pin */
   GPIO_InitStruct.Pin = lmt_sw8_Pin|lmt_sw3_Pin|lmt_sw2_Pin|lmt_sw4_Pin;
+<<<<<<< Updated upstream
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+=======
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+>>>>>>> Stashed changes
   GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
