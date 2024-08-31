@@ -92,7 +92,7 @@ Encoder encoder[3] = {
 
 volatile float x = 0, y = 0;//mm
 volatile float theta = 0;//rad
-volatile uint8_t swstate = 0;//前、右、後ろ、左
+volatile uint8_t swstate = 0;//前�?�右、後ろ、左
 
 uint8_t state = 0;
 uint8_t sub_state = 0;
@@ -335,50 +335,59 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	}
 
 	if(htim == &htim4){
-		if(HAL_GPIO_ReadPin(lmt_sw1_GPIO_Port,lmt_sw1_Pin) == GPIO_PIN_SET){
-			printf("sw1 on");
+		if(HAL_GPIO_ReadPin(lmt_sw1_GPIO_Port,lmt_sw1_Pin) == GPIO_PIN_RESET){
+			//printf("sw1 on");
 			swstate = swstate|0x01;
 		}else {
 			swstate = swstate&0xfe;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw2_GPIO_Port,lmt_sw2_Pin) == GPIO_PIN_SET){
-			printf("sw2 on");
+		if(HAL_GPIO_ReadPin(lmt_sw2_GPIO_Port,lmt_sw2_Pin) == GPIO_PIN_RESET){
+			//printf("sw2 on");
 			swstate = swstate|0x02;
 		}else {
 			swstate = swstate&0xfd;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw3_GPIO_Port,lmt_sw3_Pin) == GPIO_PIN_SET){
-			printf("sw3 on");
+		if(HAL_GPIO_ReadPin(lmt_sw3_GPIO_Port,lmt_sw3_Pin) == GPIO_PIN_RESET){
+			//printf("sw3 on");
 			swstate = swstate|0x04;
 		}else {
 			swstate = swstate&0xfb;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw4_GPIO_Port,lmt_sw4_Pin) == GPIO_PIN_SET){
-			printf("sw4 on\r\n");
+		if(HAL_GPIO_ReadPin(lmt_sw4_GPIO_Port,lmt_sw4_Pin) == GPIO_PIN_RESET){
+			//printf("sw4 on\r\n");
 			swstate = swstate|0x08;
 		}else {
 			swstate = swstate&0xf7;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw5_GPIO_Port,lmt_sw5_Pin) == GPIO_PIN_SET){
+		if(HAL_GPIO_ReadPin(lmt_sw5_GPIO_Port,lmt_sw5_Pin) == GPIO_PIN_RESET){
 			swstate = swstate|0x10;
 		}else {
 			swstate = swstate&0xef;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw6_GPIO_Port,lmt_sw6_Pin) == GPIO_PIN_SET){
+		if(HAL_GPIO_ReadPin(lmt_sw6_GPIO_Port,lmt_sw6_Pin) == GPIO_PIN_RESET){
 			swstate = swstate|0x20;
 		}else {
 			swstate = swstate&0xdf;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw7_GPIO_Port,lmt_sw7_Pin) == GPIO_PIN_SET){
+		if(HAL_GPIO_ReadPin(lmt_sw7_GPIO_Port,lmt_sw7_Pin) == GPIO_PIN_RESET){
 			swstate = swstate|0x40;
 		}else {
 			swstate = swstate&0xbf;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw8_GPIO_Port,lmt_sw8_Pin) == GPIO_PIN_SET){
+		if(HAL_GPIO_ReadPin(lmt_sw8_GPIO_Port,lmt_sw8_Pin) == GPIO_PIN_RESET){
 			swstate = swstate|0x80;
 		}else {
 			swstate = swstate&0x7f;
 		}
+//		if ((swstate & swleft) == swleft) {//left
+//			printf("left on\r\n");
+//		}
+//		if ((swstate & swright) == swright) {//left
+//			printf("right on\r\n");
+//		}
+//		if ((swstate & swfront) == swfront) {//left
+//			printf("front on\r\n");
+//		}
 	}
 }
 
@@ -936,26 +945,25 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, eno_rst_Pin|lmt_sw7_Pin|lmt_sw6_Pin|lmt_sw5_Pin
-                          |lmt_sw1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(eno_rst_GPIO_Port, eno_rst_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, lmt_sw8_Pin|lmt_sw3_Pin|lmt_sw2_Pin|lmt_sw4_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pins : eno_rst_Pin lmt_sw7_Pin lmt_sw6_Pin lmt_sw5_Pin
-                           lmt_sw1_Pin */
-  GPIO_InitStruct.Pin = eno_rst_Pin|lmt_sw7_Pin|lmt_sw6_Pin|lmt_sw5_Pin
-                          |lmt_sw1_Pin;
+  /*Configure GPIO pin : eno_rst_Pin */
+  GPIO_InitStruct.Pin = eno_rst_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(eno_rst_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : lmt_sw7_Pin lmt_sw6_Pin lmt_sw5_Pin lmt_sw1_Pin */
+  GPIO_InitStruct.Pin = lmt_sw7_Pin|lmt_sw6_Pin|lmt_sw5_Pin|lmt_sw1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : lmt_sw8_Pin lmt_sw3_Pin lmt_sw2_Pin lmt_sw4_Pin */
   GPIO_InitStruct.Pin = lmt_sw8_Pin|lmt_sw3_Pin|lmt_sw2_Pin|lmt_sw4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */

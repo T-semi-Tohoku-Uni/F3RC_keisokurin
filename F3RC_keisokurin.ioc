@@ -104,7 +104,6 @@ PA3.Signal=USART2_RX
 PB11.GPIOParameters=GPIO_Label
 PB11.GPIO_Label=lmt_sw8
 PB11.Locked=true
-<<<<<<< Updated upstream
 PB11.Signal=GPIO_Input
 PB13.GPIOParameters=GPIO_Label
 PB13.GPIO_Label=lmt_sw3
@@ -118,21 +117,6 @@ PB15.GPIOParameters=GPIO_Label
 PB15.GPIO_Label=lmt_sw4
 PB15.Locked=true
 PB15.Signal=GPIO_Input
-=======
-PB11.Signal=GPIO_Output
-PB13.GPIOParameters=GPIO_Label
-PB13.GPIO_Label=lmt_sw3
-PB13.Locked=true
-PB13.Signal=GPIO_Output
-PB14.GPIOParameters=GPIO_Label
-PB14.GPIO_Label=lmt_sw2
-PB14.Locked=true
-PB14.Signal=GPIO_Output
-PB15.GPIOParameters=GPIO_Label
-PB15.GPIO_Label=lmt_sw4
-PB15.Locked=true
-PB15.Signal=GPIO_Output
->>>>>>> Stashed changes
 PB2.GPIOParameters=GPIO_PuPd,GPIO_Label
 PB2.GPIO_Label=ENC3_A
 PB2.GPIO_PuPd=GPIO_PULLUP
@@ -166,7 +150,6 @@ PC13.Signal=GPIO_Output
 PC2.GPIOParameters=GPIO_Label
 PC2.GPIO_Label=lmt_sw7
 PC2.Locked=true
-<<<<<<< Updated upstream
 PC2.Signal=GPIO_Input
 PC3.GPIOParameters=GPIO_Label
 PC3.GPIO_Label=lmt_sw6
@@ -180,21 +163,6 @@ PC5.GPIOParameters=GPIO_Label
 PC5.GPIO_Label=lmt_sw1
 PC5.Locked=true
 PC5.Signal=GPIO_Input
-=======
-PC2.Signal=GPIO_Output
-PC3.GPIOParameters=GPIO_Label
-PC3.GPIO_Label=lmt_sw6
-PC3.Locked=true
-PC3.Signal=GPIO_Output
-PC4.GPIOParameters=GPIO_Label
-PC4.GPIO_Label=lmt_sw5
-PC4.Locked=true
-PC4.Signal=GPIO_Output
-PC5.GPIOParameters=GPIO_Label
-PC5.GPIO_Label=lmt_sw1
-PC5.Locked=true
-PC5.Signal=GPIO_Output
->>>>>>> Stashed changes
 PinOutPanel.RotationAngle=0
 ProjectManager.AskForMigrate=true
 ProjectManager.BackupPrevious=false
