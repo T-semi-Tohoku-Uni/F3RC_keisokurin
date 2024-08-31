@@ -82,7 +82,7 @@ uint8_t RxData[8] = {};
 uint8_t TxData[8] = {};
 uint32_t TxMailbox;
 
-const float ppr = 9000;
+const float ppr[3] = {1000, 1100, 1050};
 
 Encoder encoder[3] = {
 		{0, 0, 0},
@@ -206,9 +206,9 @@ void vel_calc(float Theta, float w1, float w2, float w3, float *Vx, float *Vy, f
 			{( a[1][0]*a[2][1]-a[1][1]*a[2][0])/det, (-a[0][0]*a[2][1]+a[0][1]*a[2][0])/det, ( a[0][0]*a[1][1]-a[0][1]*a[1][0])/det}
 	};
 
-	*Vx =    r*(a_in[0][0]*w[0]+a_in[0][1]*w[1]+a_in[0][2]*w[2]);
-	*Vy =    r*(a_in[1][0]*w[0]+a_in[1][1]*w[1]+a_in[1][2]*w[2]);
-	*Omega = r*(a_in[2][0]*w[0]+a_in[2][1]*w[1]+a_in[2][2]*w[2]);
+	*Vx =    r*(a_in[0][0]*w[0]+a_in[0][1]*w[1]+a_in[0][2]*w[2])/2;
+	*Vy =    r*(a_in[1][0]*w[0]+a_in[1][1]*w[1]+a_in[1][2]*w[2])/2;
+	*Omega = r*(a_in[2][0]*w[0]+a_in[2][1]*w[1]+a_in[2][2]*w[2])/2;
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
@@ -222,7 +222,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 
 		for (int i = 0; i < 3;i++) {
-			encoder[i].vel = 2*PI*(encoder[i].count/ppr)/dt;
+			encoder[i].vel = 2*PI*(encoder[i].count/ppr[i])/dt;
 		}
 
 		vel_calc(theta, encoder[0].vel, encoder[1].vel, encoder[2].vel, &vx, &vy, &omega);
@@ -250,46 +250,46 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			if (0 == sub_state){
 				if ((swstate & swfront) == swfront) {//front
 					y = 1860;//edge y
-					RxData[6] = 1;
+					TxData[6] = 1;
 				}
 				else {
-					RxData[6] = 0;
+					TxData[6] = 0;
 				}
 			}
 			else if (1 == sub_state) {
 				if ((swstate & swright) == swright) {//right
 					x = 0;//edge x
-					RxData[6] = 1;
+					TxData[6] = 1;
 				}
 				else {
-					RxData[6] = 0;
+					TxData[6] = 0;
 				}
 			}
 			else if (2 == sub_state) {
 				if ((swstate & swleft) == swleft) {//left
 					y = 0;//
-					RxData[6] = 1;
+					TxData[6] = 1;
 				}
 				else {
-					RxData[6] = 0;
+					TxData[6] = 0;
 				}
 			}
 			else if (3 == sub_state) {
 				if ((swstate & swfront) == swfront) {//front
 					x = -2900;//edge x
-					RxData[6] = 1;
+					TxData[6] = 1;
 				}
 				else {
-					RxData[6] = 0;
+					TxData[6] = 0;
 				}
 			}
 			else if (4 == sub_state) {
 				if ((swstate & swleft) == swleft) {//left
 					y = 0;//edge y
-					RxData[6] = 1;
+					TxData[6] = 1;
 				}
 				else {
-					RxData[6] = 0;
+					TxData[6] = 0;
 				}
 			}
 /*			else if (5 == sub_state) {
@@ -311,11 +311,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				}
 			}*/
 			else {
-
+				TxData[6] = 0;
 			}
 		}
 		else {
-			RxData[6] = 0;
+			TxData[6] = 0;
 		}
 
 		theta *= 400;
@@ -335,46 +335,46 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	}
 
 	if(htim == &htim4){
-		if(HAL_GPIO_ReadPin(lmt_sw1_GPIO_Port,lmt_sw1_Pin) == GPIO_PIN_RESET){
-			//printf("sw1 on");
+		if(HAL_GPIO_ReadPin(lmt_sw1_GPIO_Port,lmt_sw1_Pin) == GPIO_PIN_SET){
+			printf("sw1 on");
 			swstate = swstate|0x01;
 		}else {
 			swstate = swstate&0xfe;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw2_GPIO_Port,lmt_sw2_Pin) == GPIO_PIN_RESET){
-			//printf("sw2 on");
+		if(HAL_GPIO_ReadPin(lmt_sw2_GPIO_Port,lmt_sw2_Pin) == GPIO_PIN_SET){
+			printf("sw2 on");
 			swstate = swstate|0x02;
 		}else {
 			swstate = swstate&0xfd;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw3_GPIO_Port,lmt_sw3_Pin) == GPIO_PIN_RESET){
-			//printf("sw3 on");
+		if(HAL_GPIO_ReadPin(lmt_sw3_GPIO_Port,lmt_sw3_Pin) == GPIO_PIN_SET){
+			printf("sw3 on");
 			swstate = swstate|0x04;
 		}else {
 			swstate = swstate&0xfb;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw4_GPIO_Port,lmt_sw4_Pin) == GPIO_PIN_RESET){
-			//printf("sw4 on");
+		if(HAL_GPIO_ReadPin(lmt_sw4_GPIO_Port,lmt_sw4_Pin) == GPIO_PIN_SET){
+			printf("sw4 on\r\n");
 			swstate = swstate|0x08;
 		}else {
 			swstate = swstate&0xf7;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw5_GPIO_Port,lmt_sw5_Pin) == GPIO_PIN_RESET){
+		if(HAL_GPIO_ReadPin(lmt_sw5_GPIO_Port,lmt_sw5_Pin) == GPIO_PIN_SET){
 			swstate = swstate|0x10;
 		}else {
 			swstate = swstate&0xef;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw6_GPIO_Port,lmt_sw6_Pin) == GPIO_PIN_RESET){
+		if(HAL_GPIO_ReadPin(lmt_sw6_GPIO_Port,lmt_sw6_Pin) == GPIO_PIN_SET){
 			swstate = swstate|0x20;
 		}else {
 			swstate = swstate&0xdf;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw7_GPIO_Port,lmt_sw7_Pin) == GPIO_PIN_RESET){
+		if(HAL_GPIO_ReadPin(lmt_sw7_GPIO_Port,lmt_sw7_Pin) == GPIO_PIN_SET){
 			swstate = swstate|0x40;
 		}else {
 			swstate = swstate&0xbf;
 		}
-		if(HAL_GPIO_ReadPin(lmt_sw8_GPIO_Port,lmt_sw8_Pin) == GPIO_PIN_RESET){
+		if(HAL_GPIO_ReadPin(lmt_sw8_GPIO_Port,lmt_sw8_Pin) == GPIO_PIN_SET){
 			swstate = swstate|0x80;
 		}else {
 			swstate = swstate&0x7f;
@@ -492,11 +492,11 @@ int main(void)
 	  //printf("%d.%d.%d\r\n", encoder[0].count, encoder[1].count, encoder[2].count);
 	  //printf("%d", encoder[2].count);
 	  //printf("\r\n");
-	  //en += encoder[0].count;
+	  //en += read_encoder_value_3();
 	  //printf("%d\r\n", en);
 	  //printf("(%f, %f, %f)\r\n", x, y, theta);
-	  printf("swstate:%d\r\n",swstate);
-	  HAL_Delay(10);
+	  //printf("swstate:%d\r\n",swstate);
+	  HAL_Delay(1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
