@@ -242,7 +242,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 //		}
 		if (4 == state){
 			if (0 == sub_state){
-				if ((swstate & 0x03) == 0x03) {//switch
+				if ((swstate & 0x03) == 0x03) {//front
 					y = 0;//edge y
 					RxData[6] = 1;
 				}
@@ -251,7 +251,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				}
 			}
 			else if (1 == sub_state) {
-				if ((swstate & 0x0c) == 0x0c) {
+				if ((swstate & 0x0c) == 0x0c) {//left
 					x = 0;//edge x
 					RxData[6] = 1;
 				}
@@ -260,7 +260,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				}
 			}
 			else if (2 == sub_state) {
-				if ((swstate & 0x30) == 0x30) {
+				if ((swstate & 0x30) == 0x30) {//left
 					y = 0;//edge y
 					RxData[6] = 1;
 				}
@@ -269,7 +269,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				}
 			}
 			else if (3 == sub_state) {
-				if ((swstate & 0x0c) == 0x0c) {
+				if ((swstate & 0x0c) == 0x0c) {//front
 					x = 0;//edge x
 					RxData[6] = 1;
 				}
@@ -278,7 +278,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				}
 			}
 			else if (4 == sub_state) {
-				if ((swstate & 0xc0) == 0xc0) {
+				if ((swstate & 0xc0) == 0xc0) {//left
 					y = 0;//edge y
 					RxData[6] = 1;
 				}
@@ -286,7 +286,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 					RxData[6] = 0;
 				}
 			}
-			else if (5 == sub_state) {
+/*			else if (5 == sub_state) {
 				if ((swstate & 0x03) == 0x03) {
 					x = 0;//edge x
 					RxData[6] = 1;
@@ -303,7 +303,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				else {
 					RxData[6] = 0;
 				}
-			}
+			}*/
 			else {
 
 			}
