@@ -46,10 +46,16 @@ typedef struct{
 #define R2 73//mm
 
 
+#define swright 0x0c
+#define swleft  0xc0
+#define swfront 0x03
+#define swback  0x30
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+
 
 /* USER CODE END PM */
 
