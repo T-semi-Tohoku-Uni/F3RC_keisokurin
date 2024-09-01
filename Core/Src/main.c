@@ -82,7 +82,7 @@ uint8_t RxData[8] = {};
 uint8_t TxData[8] = {};
 uint32_t TxMailbox;
 
-const float ppr[3] = {1000, 1100, 1050};
+const float ppr[3] = {1004, 1032, 1011};
 
 Encoder encoder[3] = {
 		{0, 0, 0},
@@ -501,9 +501,9 @@ int main(void)
 	  //printf("%d.%d.%d\r\n", encoder[0].count, encoder[1].count, encoder[2].count);
 	  //printf("%d", encoder[2].count);
 	  //printf("\r\n");
-	  //en += read_encoder_value_3();
+	  //en += read_encoder_value_1();
 	  //printf("%d\r\n", en);
-	  //printf("(%f, %f, %f)\r\n", x, y, theta);
+	  printf("(%f, %f, %f)\r\n", x, y, theta);
 	  //printf("swstate:%d\r\n",swstate);
 	  HAL_Delay(1);
     /* USER CODE END WHILE */
