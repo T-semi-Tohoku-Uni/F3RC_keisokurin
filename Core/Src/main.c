@@ -92,7 +92,7 @@ Encoder encoder[3] = {
 
 volatile float x = 0, y = 0;//mm
 volatile float theta = 0;//rad
-volatile uint8_t swstate = 0;//前�?�右、後ろ、左
+volatile uint8_t swstate = 0;//前�???��?��右、後ろ、左
 
 uint8_t state = 0;
 uint8_t sub_state = 0;
@@ -276,7 +276,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			}
 			else if (3 == sub_state) {
 				if ((swstate & swfront) == swfront) {//front
-					x = -2900;//edge x
+					x = -3150;//edge x
 					TxData[6] = 1;
 				}
 				else {
@@ -503,9 +503,9 @@ int main(void)
 	  //printf("\r\n");
 	  //en += read_encoder_value_1();
 	  //printf("%d\r\n", en);
-	  printf("(%f, %f, %f)\r\n", x, y, theta);
+	  printf("%f, %f, %f, %f, %f, %f\r\n", x, y, theta, 0, 0, 0);
 	  //printf("swstate:%d\r\n",swstate);
-	  HAL_Delay(1);
+	  HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
