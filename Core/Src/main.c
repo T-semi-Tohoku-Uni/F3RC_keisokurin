@@ -92,7 +92,7 @@ Encoder encoder[3] = {
 
 volatile float x = 0, y = 0;//mm
 volatile float theta = 0;//rad
-volatile uint8_t swstate = 0;//å‰ï¿½???ï¿½ï¿½?ï¿½ï¿½å³ã€å¾Œã‚ã€å·¦
+volatile uint8_t swstate = 0;//å‰ï¿½?????¿½?¿½??¿½?¿½???¿½?¿½??¿½?¿½å³ã€å¾Œã‚ã€å·¦
 
 uint8_t state = 0;
 uint8_t sub_state = 0;
@@ -213,7 +213,7 @@ void vel_calc(float Theta, float w1, float w2, float w3, float *Vx, float *Vy, f
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim == &htim6){
-		float dt = 100;
+		float dt = 10;
 		float vx = 0, vy = 0;//mm/ms
 		float omega = 0;//rad/ms
 		encoder[0].count = read_encoder_value_1();
@@ -222,7 +222,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 
 		for (int i = 0; i < 3;i++) {
-			encoder[i].vel = 2*PI*(encoder[i].count/ppr[i])/dt;
+			encoder[i].vel = 2*PI*((float)encoder[i].count/ppr[i])/dt;
 		}
 
 		vel_calc(theta, encoder[0].vel, encoder[1].vel, encoder[2].vel, &vx, &vy, &omega);
@@ -398,8 +398,8 @@ void FDCAN_RxTxSettings(void){
 	FDCAN_Filter_settings.FilterIndex = 0;
 	FDCAN_Filter_settings.FilterType = FDCAN_FILTER_RANGE;
 	FDCAN_Filter_settings.FilterConfig = FDCAN_FILTER_TO_RXFIFO1;
-	FDCAN_Filter_settings.FilterID1 = 0x000;
-	FDCAN_Filter_settings.FilterID2 = 0x510;
+	FDCAN_Filter_settings.FilterID1 = 0x090;
+	FDCAN_Filter_settings.FilterID2 = 0x310;
 
 	TxHeader.Identifier = 0x400;
 	TxHeader.IdType = FDCAN_STANDARD_ID;
@@ -860,7 +860,7 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 999;
+  htim6.Init.Prescaler = 99;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim6.Init.Period = 7999;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
