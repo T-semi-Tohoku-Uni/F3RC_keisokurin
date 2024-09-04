@@ -227,11 +227,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			encoder[i].vel = 2*PI*((float)encoder[i].count/ppr[i])/dt;
 		}
 
-		vel_calc(theta, encoder[0].vel, encoder[1].vel, encoder[2].vel, &vx, &vy, &omega);
+		//vel_calc(theta, encoder[0].vel, encoder[1].vel, encoder[2].vel, &vx, &vy, &omega);
 
-		x += vx * dt;
-		y += vy * dt;
-		theta += omega * dt	;
+		x += encoder[2].vel * 30 * dt;
+		y += encoder[1].vel * -30 * dt;
+		theta = 0;
 
 		theta = fmodf(theta, 2*PI);
 //		uint16_t theta_syi;
@@ -517,8 +517,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
   }
-  /* USER CODE END 3 */
-}
+  /* USER CODE END 3 */}
 
 /**
   * @brief System Clock Configuration
