@@ -101,7 +101,11 @@ uint8_t sub_state = 0;
 volatile int8_t ENC3X = 0;
 volatile int16_t ENC3dif = 0;
 volatile int16_t ENC3pastsum = 0;
+<<<<<<< HEAD
 volatile int32_t ENC3nowsum = 0;
+=======
+volatile int32_t ENC3sumnow = 0;
+>>>>>>> cca3ccfde0a33f97995b410809278b288c1ec209
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -226,7 +230,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		encoder[0].count = read_encoder_value_1();
 		encoder[1].count = read_encoder_value_2();
 		encoder[2].count = read_encoder_value_3() + ENC3dif;
+<<<<<<< HEAD
 		ENC3nowsum += encoder[2].count;
+=======
+		ENC3sumnow += encoder[2].count;
+>>>>>>> cca3ccfde0a33f97995b410809278b288c1ec209
 
 
 		for (int i = 0; i < 3;i++) {
@@ -450,6 +458,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	{
 		if(ENC3X == 0){
 			encoder[2].count = read_encoder_value_3();
+<<<<<<< HEAD
 			ENC3nowsum += encoder[2].count;
 			ENC3dif = encoder[2].count;
 			ENC3X = 1;
@@ -458,6 +467,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 			encoder[2].count = read_encoder_value_3();
 			ENC3nowsum += encoder[2].count;
 			int ENC3sa = ENC3pastsum - ENC3nowsum;
+=======
+			ENC3sumnow += encoder[2].count;
+			ENC3dif = encoder[2].count;
+			ENC3X = 1;
+			ENC3pastsum =ENC3sumnow;
+		}else {
+			encoder[2].count = read_encoder_value_3();
+			ENC3sumnow += encoder[2].count;
+			int ENC3sa = ENC3pastsum - ENC3sumnow;
+>>>>>>> cca3ccfde0a33f97995b410809278b288c1ec209
 			if(ENC3sa < 950 && ENC3sa > -950){
 				ENC3dif = encoder[2].count;
 			}else if(ENC3sa >= 950){
@@ -465,8 +484,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 			}else if(ENC3sa <= -950){
 				ENC3dif = (-1000 - ENC3sa) + encoder[2].count;
 			}
+<<<<<<< HEAD
 			printf("sa:%d, sum:%ld\r\n",ENC3sa,ENC3nowsum);
 			ENC3pastsum = ENC3nowsum;
+=======
+			printf("sa:%ld, sum:%ld",ENC3sa,ENC3sumnow);
+>>>>>>> cca3ccfde0a33f97995b410809278b288c1ec209
 		}
 	}
 }
