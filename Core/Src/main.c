@@ -93,10 +93,15 @@ Encoder encoder[3] = {
 
 volatile float x = 0, y = 0;//mm
 volatile float theta = 0;//rad
-volatile uint8_t swstate = 0;//前�??????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��右、後ろ、左
+volatile uint8_t swstate = 0;//前�????????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��?????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��??????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��?????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��右、後ろ、左
 
 uint8_t state = 0;
 uint8_t sub_state = 0;
+
+volatile int8_t ENC3X = 0;
+volatile int16_t ENC3dif = 0;
+volatile int16_t ENC3pastsum = 0;
+volatile int32_t ENC3nowsum = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -220,7 +225,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		float omega = 0;//rad/ms
 		encoder[0].count = read_encoder_value_1();
 		encoder[1].count = read_encoder_value_2();
-		encoder[2].count = read_encoder_value_3();
+		encoder[2].count = read_encoder_value_3() + ENC3dif;
+		ENC3nowsum += encoder[2].count;
 
 
 		for (int i = 0; i < 3;i++) {
@@ -439,6 +445,32 @@ void FDCAN_RxTxSettings(void){
 }
 
 
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	if (GPIO_Pin == GPIO_PIN_12)
+	{
+		if(ENC3X == 0){
+			encoder[2].count = read_encoder_value_3();
+			ENC3nowsum += encoder[2].count;
+			ENC3dif = encoder[2].count;
+			ENC3X = 1;
+			ENC3pastsum =ENC3nowsum;
+		}else {
+			encoder[2].count = read_encoder_value_3();
+			ENC3nowsum += encoder[2].count;
+			int ENC3sa = ENC3pastsum - ENC3nowsum;
+			if(ENC3sa < 950 && ENC3sa > -950){
+				ENC3dif = encoder[2].count;
+			}else if(ENC3sa >= 950){
+				ENC3dif = (1000 - ENC3sa) + encoder[2].count;
+			}else if(ENC3sa <= -950){
+				ENC3dif = (-1000 - ENC3sa) + encoder[2].count;
+			}
+			printf("sa:%d, sum:%ld\r\n",ENC3sa,ENC3nowsum);
+			ENC3pastsum = ENC3nowsum;
+		}
+	}
+}
+
 int _write(int file, char *ptr, int len)
 {
     HAL_UART_Transmit(&huart2,(uint8_t *)ptr,len,10);
@@ -510,7 +542,7 @@ int main(void)
 	  //printf("\r\n");
 	  //en += read_encoder_value_1();
 	  //printf("%d\r\n", en);
-	  printf("%f, %f, %f, %f, %f, %f\r\n", x, y, theta, 0, 0, 0);
+	  //printf("%f, %f, %f, %f, %f, %f\r\n", x, y, theta, 0, 0, 0);
 	  //printf("swstate:%d\r\n",swstate);
 	  HAL_Delay(100);
     /* USER CODE END WHILE */
@@ -1005,11 +1037,27 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : ENC1_X_Pin PA6 */
+  GPIO_InitStruct.Pin = ENC1_X_Pin|GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /*Configure GPIO pins : lmt_sw8_Pin lmt_sw3_Pin lmt_sw2_Pin lmt_sw4_Pin */
   GPIO_InitStruct.Pin = lmt_sw8_Pin|lmt_sw3_Pin|lmt_sw2_Pin|lmt_sw4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : ENC3_X_Pin */
+  GPIO_InitStruct.Pin = ENC3_X_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(ENC3_X_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
