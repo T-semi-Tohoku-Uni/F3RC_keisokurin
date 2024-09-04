@@ -83,7 +83,7 @@ uint8_t RxData[8] = {};
 uint8_t TxData[8] = {};
 uint32_t TxMailbox;
 
-const float ppr[3] = {1004, 1032, 1011};
+const float ppr[3] = {1000, 1000, 1000};
 
 Encoder encoder[3] = {
 		{0, 0, 0},
@@ -153,8 +153,8 @@ int16_t read_encoder_value_1(void)
 int16_t read_encoder_value_2(void)
 {
   int32_t count_t = 0;
-  uint32_t enc_buff = TIM3->CNT;
-  TIM3->CNT = 0;
+  uint32_t enc_buff = TIM5->CNT;
+  TIM5->CNT = 0;
   if (enc_buff > 0x8fffffff)
   {
     count_t = (int32_t)enc_buff*-1;
@@ -169,8 +169,8 @@ int16_t read_encoder_value_2(void)
 int16_t read_encoder_value_3(void)
 {
   int32_t count_t = 0;
-  uint32_t enc_buff = TIM5->CNT;
-  TIM5->CNT = 0;
+  uint32_t enc_buff = TIM3->CNT;
+  TIM3->CNT = 0;
   if (enc_buff > 0x8fffffff)
   {
     count_t = (int32_t)enc_buff*-1;
@@ -252,6 +252,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			if (0 == sub_state){
 				if ((swstate & swright) == swright) {//front
 					x = 0;//edge y
+					theta = 0;
 					TxData[6] = 1;
 				}
 				else {
@@ -261,6 +262,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			else if (1 == sub_state) {
 				if ((swstate & swright) == swright) {//right
 					y = 1860;//edge x
+					theta = 0;
 					TxData[6] = 1;
 				}
 				else {
@@ -270,6 +272,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			else if (2 == sub_state) {
 				if ((swstate & swleft) == swleft) {//left
 					y = 0;//
+					theta = 0;
 					TxData[6] = 1;
 				}
 				else {
@@ -279,6 +282,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			else if (3 == sub_state) {
 				if ((swstate & swleft) == swleft) {//front
 					x = 0;//edge x
+					theta = 0;
 					TxData[6] = 1;
 				}
 				else {
