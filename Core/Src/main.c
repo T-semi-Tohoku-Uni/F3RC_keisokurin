@@ -42,7 +42,8 @@ typedef struct{
 
 #define r 60//mm
 
-#define R1 187//mm
+#define R0 188//mm
+#define R1 196//mm
 #define R2 73//mm
 
 
@@ -83,7 +84,7 @@ uint8_t RxData[8] = {};
 uint8_t TxData[8] = {};
 uint32_t TxMailbox;
 
-const float ppr[3] = {1000, 1000, 1000};
+const float ppr[3] = {1035, 1000, 1000};
 
 Encoder encoder[3] = {
 		{0, 0, 0},
@@ -93,7 +94,7 @@ Encoder encoder[3] = {
 
 volatile float x = 0, y = 0;//mm
 volatile float theta = 0;//rad
-volatile uint8_t swstate = 0;//前�??????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��右、後ろ、左
+volatile uint8_t swstate = 0;//前�???????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��?????��?��??��?��???��?��??��?��????��?��??��?��???��?��??��?��右、後ろ、左
 
 uint8_t state = 0;
 uint8_t sub_state = 0;
@@ -137,8 +138,8 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 int16_t read_encoder_value_1(void)
 {
   int32_t count_t = 0;
-  uint32_t enc_buff = TIM2->CNT;
-  TIM2->CNT = 0;
+  uint32_t enc_buff = TIM3->CNT;
+  TIM3->CNT = 0;
   if (enc_buff > 0x8fffffff)
   {
     count_t = (int32_t)enc_buff*-1;
@@ -153,8 +154,8 @@ int16_t read_encoder_value_1(void)
 int16_t read_encoder_value_2(void)
 {
   int32_t count_t = 0;
-  uint32_t enc_buff = TIM5->CNT;
-  TIM5->CNT = 0;
+  uint32_t enc_buff = TIM2->CNT;
+  TIM2->CNT = 0;
   if (enc_buff > 0x8fffffff)
   {
     count_t = (int32_t)enc_buff*-1;
@@ -169,8 +170,8 @@ int16_t read_encoder_value_2(void)
 int16_t read_encoder_value_3(void)
 {
   int32_t count_t = 0;
-  uint32_t enc_buff = TIM3->CNT;
-  TIM3->CNT = 0;
+  uint32_t enc_buff = TIM5->CNT;
+  TIM5->CNT = 0;
   if (enc_buff > 0x8fffffff)
   {
     count_t = (int32_t)enc_buff*-1;
@@ -190,7 +191,7 @@ void vel_calc(float Theta, float w1, float w2, float w3, float *Vx, float *Vy, f
 	float cost = cos(Theta);
 
 	float a[3][3] = {
-			{-sint, cost, R1},
+			{-sint, cost, R0},
 			{sint, -cost, R1},
 			{cost, sint, R2}
 	};
@@ -250,7 +251,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 //		}
 		if (4 == state){
 			if (0 == sub_state){
-				if ((swstate & swright) == swright) {//front
+				if ((swstate & swright) == swright) {//right
 					x = 0;//edge y
 					theta = 0;
 					TxData[6] = 1;
@@ -260,9 +261,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				}
 			}
 			else if (1 == sub_state) {
-				if ((swstate & swright) == swright) {//right
-					y = 1860;//edge x
-					theta = 0;
+				if ((swstate & swleft) == swleft) {//left
+					y = 40;//edge x
+					theta = PI/2;
 					TxData[6] = 1;
 				}
 				else {
@@ -271,8 +272,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			}
 			else if (2 == sub_state) {
 				if ((swstate & swleft) == swleft) {//left
-					y = 0;//
-					theta = 0;
+					y = 40;//
+					theta = PI/2;
 					TxData[6] = 1;
 				}
 				else {
@@ -281,8 +282,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			}
 			else if (3 == sub_state) {
 				if ((swstate & swleft) == swleft) {//front
-					x = 0;//edge x
-					theta = 0;
+					y = 40;//edge x
+					theta = PI/2;
 					TxData[6] = 1;
 				}
 				else {
@@ -689,11 +690,11 @@ static void MX_TIM2_Init(void)
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC1Filter = 0;
+  sConfig.IC1Filter = 15;
   sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC2Filter = 0;
+  sConfig.IC2Filter = 15;
   if (HAL_TIM_Encoder_Init(&htim2, &sConfig) != HAL_OK)
   {
     Error_Handler();
