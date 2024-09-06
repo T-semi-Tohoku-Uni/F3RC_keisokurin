@@ -262,7 +262,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			}
 			else if (1 == sub_state) {
 				if ((swstate & swleft) == swleft) {//left
-					y = 40;//edge x
+					y = -20;//edge x
 					theta = PI/2;
 					TxData[6] = 1;
 				}
@@ -272,7 +272,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			}
 			else if (2 == sub_state) {
 				if ((swstate & swleft) == swleft) {//left
-					y = 40;//
+					y = -20;//
 					theta = PI/2;
 					TxData[6] = 1;
 				}
@@ -282,7 +282,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			}
 			else if (3 == sub_state) {
 				if ((swstate & swleft) == swleft) {//front
-					y = 40;//edge x
+					y = -20;//edge x
 					theta = PI/2;
 					TxData[6] = 1;
 				}
